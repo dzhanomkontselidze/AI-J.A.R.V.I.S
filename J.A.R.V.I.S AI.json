@@ -1,0 +1,919 @@
+{
+  "name": "Telegram AI-bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "id": "14a8b3f7-28c4-4d84-bf35-5fac9300e72f",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -1408,
+        800
+      ],
+      "webhookId": "51942fbb-ca0e-4ec4-9423-5fcc7d3c4281",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message?.text }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "notStartsWith",
+              "value2": "/"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/start",
+              "output": 1
+            },
+            {
+              "operation": "startsWith",
+              "value2": "=/image ",
+              "output": 2
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/help",
+              "output": 3
+            }
+          ]
+        },
+        "fallbackOutput": "={{ 3 }}"
+      },
+      "id": "643bdc39-13f7-4127-a211-2af164821069",
+      "name": "CheckCommand",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -448,
+        784
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "model_temperature",
+              "value": 2
+            },
+            {
+              "name": "token_length",
+              "value": 500
+            }
+          ],
+          "string": [
+            {
+              "name": "system_command",
+              "value": "=You are J.A.R.V.I.S. — Just A Rather Very Intelligent System. You are sophisticated, precise, slightly witty, and always impeccably polite. You serve the user with calm confidence, dry humor, and an air of effortless competence — much like a personal AI assistant to a genius billionaire.\n\nUser name is {{ $json?.message?.from?.first_name }}. User system language is {{ $json?.message?.from?.language_code }}.\n\nFirst, detect the language of the user's message. Then respond entirely in that same language.\n\nGuidelines for your tone and style:\n- Address the user by their first name occasionally, naturally — not every message.\n- Speak with measured elegance: clear, intelligent, never verbose.\n- Add a touch of dry wit where appropriate, but remain respectful and professional.\n- Never say \"I can't\" — instead, offer what you *can* do.\n- Include 2–3 fitting emojis, placed naturally within the response — not at random.\n\nBegin each conversation as if you've already analyzed the situation and are one step ahead."
+            },
+            {
+              "name": "bot_typing",
+              "value": "={{ $json?.message?.text.startsWith('/image') ? \"upload_photo\" : \"typing\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a536963a-d812-49ca-bf6a-09531e7d1ba6",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1056,
+        800
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "## Режим бота за замовчуванням\n### (якщо команди не були додані)\n",
+        "height": 313,
+        "width": 331
+      },
+      "id": "faa25345-2bde-4c8f-a7a0-88a51010169b",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Вітальне повідомлення\n### /start",
+        "height": 252,
+        "width": 331
+      },
+      "id": "b95cdea3-5540-4b12-b872-ae180aac2779",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Settings').first().json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "6ca8c79e-1c89-4107-a89a-c31e2f90619c",
+      "name": "Text reply",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        816,
+        736
+      ],
+      "typeVersion": 1,
+      "webhookId": "b2e71a12-a508-464e-9dd1-e6bdf14dc6f7",
+      "credentials": {
+        "telegramApi": {
+          "id": "x",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.from.id }}",
+        "action": "={{ $json.bot_typing }}"
+      },
+      "id": "6cc1ec40-2fb9-4d50-8e76-0f6e78f190fc",
+      "name": "Send Typing action",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -848,
+        928
+      ],
+      "typeVersion": 1,
+      "webhookId": "22258ff1-88f9-44c4-b6d2-802efd14aeac",
+      "credentials": {
+        "telegramApi": {
+          "id": "sLvOgrwHiAyHyfVx",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "id": "8f4b9fe3-ccac-4f7b-9dcf-819545ba744f",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -640,
+        816
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "## Створити фото\n### /image + промт\n",
+        "height": 266,
+        "width": 330
+      },
+      "id": "7312e1cd-9eb4-4396-bb98-d9b317c4af6c",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        864
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Merge').first().json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "id": "93d07c70-04f6-425a-aaef-6887641ddd85",
+      "name": "Send image",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        816,
+        976
+      ],
+      "typeVersion": 1,
+      "webhookId": "74bc3262-46f4-4693-b03d-3a3a51305de4",
+      "credentials": {
+        "telegramApi": {
+          "id": "sLvOgrwHiAyHyfVx",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message.text",
+              "value": "={{ $json?.message?.text || \"\" }}"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "a2a9fe8c-d020-48af-a82c-cf0be777ea72",
+      "name": "PreProcessing",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1232,
+        800
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        336
+      ],
+      "id": "b7ec06e6-4da8-4695-9a49-93e6e094c321",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        736
+      ],
+      "id": "5765ce1d-9f15-47eb-9560-658345d40658",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "x",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        2448
+      ],
+      "id": "deb8c124-c609-4ce2-a3a3-9defb526ceb9",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "19k1kwPXqYjc2DAH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Видати помилку\n\n",
+        "height": 314,
+        "width": 330
+      },
+      "id": "9c70d2e3-515b-4490-b9ee-e0a63f3ed213",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        2128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are J.A.R.V.I.S. — Just A Rather Very Intelligent System. You are sophisticated, precise, slightly witty, and always impeccably polite. You serve the user with calm confidence, dry humor, and an air of effortless competence — much like a personal AI assistant to a genius billionaire.\n\nUser name is {{ $json?.message?.from?.first_name }}. User system language is {{ $json?.message?.from?.language_code }}. User request is {{ $json.message.text }}\n\nFirst, detect the language of the user's message. Then respond entirely in that same language.\n\nGuidelines for your tone and style:\n- Address the user by their first name occasionally, naturally — not every message.\n- Speak with measured elegance: clear, intelligent, never verbose.\n- Add a touch of dry wit where appropriate, but remain respectful and professional.\n- Never say \"I can't\" — instead, offer what you *can* do.\n- Include 2–3 fitting emojis, placed naturally within the response — not at random.\n\nBegin each conversation as if you've already analyzed the situation and are one step ahead.",
+        "options": {
+          "systemMessage": "🦾 Вітаю у системі! Я — «J.A.R.V.I.S». Я вмонтований gemini-бот для телеграму!\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        144
+      ],
+      "id": "08412d40-3cae-4a6b-a1d5-4c06305ff6ec",
+      "name": "Jarvis Default"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are J.A.R.V.I.S. — Just A Rather Very Intelligent System.\n\nThe user has just started the bot for the first time. \nGreet them warmly but with your signature elegance and dry wit.\nAddress them by name: {{ $json.message.from.first_name }}.\n\nLet them know you are at their service and briefly mention what you can do:\n- Answer any questions\n- Have intelligent conversations\n- Generate images with /image\n\nKeep it short, sharp, and charming. 2–3 emojis max.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        560
+      ],
+      "id": "89e1cb9f-4086-441d-b85e-c08b3ac76c3d",
+      "name": "Jarvis Welcome"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ти — J.A.R.V.I.S.\n\nКористувач надіслав непідтримувану команду.\nВизнач мову з повідомлення користувача: {{ $('Merge').first().json.message.text }}\nВідповідай ТІЄЮ ж мовою що і користувач.\n\nІм'я користувача: {{ $('Merge').first().json.message.from.first_name }}\n\nПовідом елегантно з сухим гумором що команда не підтримується і запропонуй:\n- Просто написати повідомлення для чату\n- /image [запит] для генерації зображення\n- /test [текст] для створення квізу\n\nМаксимум 2 емодзі. Жодних посилань чи згадок сторонніх сервісів.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        32,
+        2240
+      ],
+      "id": "a422c290-7910-40c5-a1bf-c812b3f2c8d1",
+      "name": "Jarvis Error"
+    },
+    {
+      "parameters": {
+        "operation": "sendSticker",
+        "chatId": "={{ $('Merge').first().json.message.chat.id }}",
+        "file": "={{ $json.sticker_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        2240
+      ],
+      "id": "1dfc5452-be53-48d0-94cf-c7b11ea2ddd2",
+      "name": "Send a sticker",
+      "webhookId": "5fbf674d-e9f4-4c78-9050-359d7a8336d0",
+      "credentials": {
+        "telegramApi": {
+          "id": "sLvOgrwHiAyHyfVx",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const stickers = [\n\"CAACAgQAAxkBAxfkBmoBmZ3Fl6vtzWGIjePQPEdBZr3LAAJQDQACMIcgUAhiK4n3fV1uOwQ\",\n];\n\nconst random = stickers[Math.floor(Math.random() * stickers.length)];\nreturn [{ json: { sticker_id: random } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        2240
+      ],
+      "id": "901a8a52-7d23-4b50-b8da-8db188d79eb3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Merge').first().json.message.chat.id }}",
+        "text": "={{ $('Jarvis Error').first().json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        2240
+      ],
+      "id": "592934f0-86c3-48c9-b671-6d5f353d809f",
+      "name": "Send a text message",
+      "webhookId": "6e932e05-a8f7-4650-aeb6-23dd8f2b3257",
+      "credentials": {
+        "telegramApi": {
+          "id": "sLvOgrwHiAyHyfVx",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.message?.text }}",
+        "rules": {
+          "rules": [
+            {
+              "operation": "startsWith",
+              "value2": "/help"
+            },
+            {
+              "operation": "startsWith",
+              "value2": "/test ",
+              "output": 1
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "b740a8bc-4b6e-4856-8b5d-0422fa93838d",
+      "name": "CheckCommand1",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -448,
+        1136
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Створити тест\n/test + конспект\n\n\n",
+        "height": 330,
+        "width": 330
+      },
+      "id": "5ce1a689-28e7-4298-8d56-20f57ba3c285",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        1632
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        1968
+      ],
+      "id": "f403c9c1-ca96-4a66-b10c-13caaeed14c9",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "19k1kwPXqYjc2DAH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Merge').first().json.message.text.replace('/test', '').trim() }}",
+        "options": {
+          "systemMessage": "=You are J.A.R.V.I.S., a sophisticated AI tutor.\n\nThe user has provided text below. You MUST create a quiz ONLY from this exact text — do not invent your own topic or ignore the provided content.\n\nCreate 5 multiple choice questions based STRICTLY on the provided text with:\n- A clear question\n- 4 options labeled A, B, C, D\n- Correct answers revealed at the end\n\nDetect the language of the provided text and respond entirely in that language.\nAddress the user by name: {{ $json.message.from.first_name }}\n\nFormat your response as plain text only — no asterisks, no bold, no special markdown characters. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        32,
+        1792
+      ],
+      "id": "116edcf5-e498-4427-ac5f-16ec1271f910",
+      "name": "Jarvis Test"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.output;\n\nconst clean = text\n  .replace(/\\*\\*/g, '')\n  .replace(/\\*/g, '')\n  .replace(/\\_\\_/g, '')\n  .replace(/\\_/g, '')\n  .replace(/\\[/g, '')\n  .replace(/\\]/g, '')\n  .replace(/\\`/g, '')\n  .replace(/\\#/g, '')\n  .replace(/\\{/g, '')\n  .replace(/\\}/g, '')\n  .replace(/\\(/g, '')\n  .replace(/\\)/g, '')\n  .replace(/\\>/g, '')\n  .replace(/\\!/g, '');\n\nreturn [{ json: { cleaned_text: clean } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        1760
+      ],
+      "id": "d951f3c0-75ab-491e-b4c1-5890c249ddeb",
+      "name": "Cleaned Text"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Merge').first().json.message.chat.id }}",
+        "text": "={{ $json.cleaned_text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "17139db5-1557-4631-8508-11e72a3bbfb4",
+      "name": "Send test",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        688,
+        1760
+      ],
+      "typeVersion": 1,
+      "webhookId": "b2e71a12-a508-464e-9dd1-e6bdf14dc6f7",
+      "credentials": {
+        "telegramApi": {
+          "id": "sLvOgrwHiAyHyfVx",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Допомога\n### /help\n\n",
+        "height": 266,
+        "width": 330
+      },
+      "id": "64e0389b-ed61-4f5d-9c55-f5f25dde9d25",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        1216
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ти — J.A.R.V.I.S.\n\nВизнач мову користувача з: {{ $('Merge').first().json.message.from.language_code }}\nВідповідай тією ж мовою.\n\nІм'я користувача: {{ $('Merge').first().json.message.from.first_name }}\n\nПокажи список доступних команд елегантно та з сухим гумором:\n\n/start — перезапустити та привітатись\n/image [запит] — згенерувати зображення\n/test [текст] — створити квіз з тексту\n/help — показати це меню\n\nПриклад для /image:\n/image кошеня у стилі Міядзакі Студія Гіблі\n\nЗвернись до користувача на ім'я. Максимум 2 емодзі.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        1312
+      ],
+      "id": "b1e3c4fe-71fd-4df0-ba6d-f2b04e5af857",
+      "name": "Jarvis Help"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        1488
+      ],
+      "id": "0a62144b-0c1d-4707-a61e-f2c9fb888085",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "19k1kwPXqYjc2DAH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text_prompts\": [\n    {\n      \"text\": \"{{ $('Merge').first().json.message.text.replace('/image', '').trim() }}\"\n    }\n  ],\n  \"samples\": 1,\n  \"height\": 1024,\n  \"width\": 1024\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        96,
+        976
+      ],
+      "id": "76f50fdd-a386-41de-9621-2567fa6ea73f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const artifacts = $input.first().json.artifacts;\nconst base64 = artifacts[0].base64;\n\nreturn [{\n  json: {},\n  binary: {\n    data: await this.helpers.prepareBinaryData(\n      Buffer.from(base64, 'base64'),\n      'image.png',\n      'image/png'\n    )\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        976
+      ],
+      "id": "3233ee45-ca42-4412-ab06-b548dcbaee35",
+      "name": "Send Image"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "CheckCommand",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Send Typing action",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckCommand": {
+      "main": [
+        [
+          {
+            "node": "Jarvis Default",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jarvis Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CheckCommand1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PreProcessing": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "PreProcessing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Typing action": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Jarvis Default",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Jarvis Welcome",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Jarvis Error",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jarvis Default": {
+      "main": [
+        [
+          {
+            "node": "Text reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jarvis Welcome": {
+      "main": [
+        [
+          {
+            "node": "Text reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jarvis Error": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a sticker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a sticker": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckCommand1": {
+      "main": [
+        [
+          {
+            "node": "Jarvis Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jarvis Test",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jarvis Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Jarvis Test",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jarvis Test": {
+      "main": [
+        [
+          {
+            "node": "Cleaned Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleaned Text": {
+      "main": [
+        [
+          {
+            "node": "Send test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Jarvis Help",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jarvis Help": {
+      "main": [
+        [
+          {
+            "node": "Text reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Image": {
+      "main": [
+        [
+          {
+            "node": "Send image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "478706c4-9a41-4ac1-bb0a-52cc9105b15f",
+  "meta": {
+    "instanceId": "x"
+  },
+  "id": "YfIRroyJXwAgJUBk",
+  "tags": []
+}
