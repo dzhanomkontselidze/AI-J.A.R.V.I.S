@@ -41,24 +41,20 @@ Sophisticated Telegram бот на базі **Google Gemini** та **Stability A
 
 ### Інструкція
 
-1. **Клонуй репозиторій**
-```bash
-git clone https://github.com/YOUR_USERNAME/jarvis-telegram-bot
-```
-
-2. **Імпортуй workflow в n8n**
+1. **Встанови файл JSON**
+   
+3. **Імпортуй workflow в n8n**
    - Відкрий n8n
    - Натисни **Import from file**
    - Вибери JSON файл workflow
 
-3. **Додай свої облікові дані в n8n**
+4. **Додай свої облікові дані в n8n**
    - Telegram Bot API токен
    - Google Gemini API ключ
    - Stability AI API ключ (Header Auth)
 
-4. **Активуй workflow**
+5. **Активуй workflow**
    - Натисни перемикач **Active** в n8n
-   - Твій бот тепер живий! 🎉
 
 ---
 
@@ -119,10 +115,5 @@ JARVIS: [генерує 5 питань квізу з тексту] 📝
 
 ---
 
-## 📄 Ліцензія
-
-MIT Ліцензія — використовуй та змінюй вільно!
-
----
 
 *Створено з ❤️ та краплею натхнення від Stark Industries*
